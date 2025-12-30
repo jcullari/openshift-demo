@@ -15,7 +15,7 @@ database-password (ej.: OCJqLmeKqTjnuiQ0)
 database-name (ej.: sampledb)
 
 Tip: Mantener credenciales en Secrets y referenciarlas por variables de entorno es la práctica recomendada.
-
+---
 Despliegue e inicialización
 Crear o validar el Secret
 bash
