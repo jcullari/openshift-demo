@@ -164,17 +164,19 @@ CREATE TABLE clientes (
   email VARCHAR(100)
 );
 Insertar registros
-sql
+
 INSERT INTO clientes (nombre, email) VALUES
 ('Ana Pérez', 'ana.perez@example.com'),
 ('Carlos Gómez', 'carlos.gomez@example.com'),
 ('Lucía Fernández', 'lucia.fernandez@example.com');
+
 Verificar
-sql
+
 SELECT * FROM clientes;
 \dt
 \d clientes
 Cierre consultivo para entrevista TAM
+
 Problema: Falla de autenticación por desincronización entre Secret y rol.
 
 Diagnóstico: Logs internos de PostgreSQL muestran Password does not match y regla pg_hba.conf md5.
@@ -186,7 +188,7 @@ Aprendizaje: OpenShift gestiona credenciales; PostgreSQL las valida. Los Pods ef
 Valor TAM: Convertir un error en una oportunidad educativa, guiar al cliente con pasos claros y buenas prácticas.
 
 Limpieza opcional
-bash
+
 oc delete deployment postgresql
 oc delete service postgresql
 oc delete secret postgresql
