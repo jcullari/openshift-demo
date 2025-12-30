@@ -18,13 +18,13 @@ Tip: Mantener credenciales en Secrets y referenciarlas por variables de entorno 
 ---
 Despliegue e inicialización
 Crear o validar el Secret
-bash
 oc create secret generic postgresql \
   --from-literal=database-user=userLI3 \
   --from-literal=database-password=OCJqLmeKqTjnuiQ0 \
   --from-literal=database-name=sampledb
+
 Desplegar PostgreSQL (ejemplo básico con Deployment)
-bash
+
 cat << 'EOF' | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
@@ -67,6 +67,18 @@ spec:
       volumes:
         - name: postgresql-data
           emptyDir: {}
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+spec:
+  selector:
+    app: postgresql
+  ports:
+    - port: 5432
+      targetPort: 5432
+EOF
+
 ---
 apiVersion: v1
 kind: Service
@@ -79,18 +91,25 @@ spec:
     - port: 5432
       targetPort: 5432
 EOF
+
 Tip: En producción usá PersistentVolume en lugar de emptyDir.
 
 Probar la conexión
+
 Opción A: Cliente efímero directo con oc run
-bash
+
 oc run psql-client --image=registry.redhat.io/rhel8/postgresql-13 --restart=Never -it -- \
   psql -h postgresql -U userLI3 sampledb
+
 Si ves “cannot exec into a container in a completed pod”: el Pod efímero terminó (fase Succeeded). Volvé a crear otro o usá las opciones siguientes.
 
 Opción B: Shell interactiva en un Pod efímero
-bash
+
 oc run psql-client --image=registry.redhat.io/rhel8/postgresql-13 --restart=Never -it -- bash
+
+# Dentro del pod:
+psql -h postgresql -U userLI3 sampledb
+
 # Dentro del pod:
 psql -h postgresql -U userLI3 sampledb
 Opción C: Desde el Pod de PostgreSQL
