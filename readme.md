@@ -1,4 +1,5 @@
 Paso a paso: conexión y troubleshooting de PostgreSQL en OpenShift
+-
 Este README documenta, de forma simple y reutilizable, el flujo que usamos para crear, probar y solucionar la conexión a PostgreSQL en OpenShift, incluyendo cómo leer logs y corregir un error de autenticación.
 
 Prerrequisitos
@@ -15,7 +16,7 @@ database-password (ej.: OCJqLmeKqTjnuiQ0)
 database-name (ej.: sampledb)
 
 Tip: Mantener credenciales en Secrets y referenciarlas por variables de entorno es la práctica recomendada.
----
+
 Despliegue e inicialización
 Crear o validar el Secret
 oc create secret generic postgresql \
@@ -118,17 +119,22 @@ oc rsh deploy/postgresql
 psql -h postgresql -U userLI3 sampledb
 Leer logs cuando la autenticación falla
 Si obtenés: FATAL: password authentication failed for user "userLI3".
+# Verificar secret
+PS C:\openshift> # Obtener la contraseña en base64
+PS C:\openshift> $encoded = oc get secret postgresql -o jsonpath="{.data.database-password}"
+PS C:\openshift>
+PS C:\openshift> # Decodificarla
+PS C:\openshift> [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($encoded))
+OCJqLmeKqTjnuiQ0
 
 Arranque del contenedor:
 
-bash
 oc logs deploy/postgresql
 Verás que el logging se redirige a “log” (logging collector de PostgreSQL).
 
 Logs de autenticación dentro del Pod:
-
-bash
 oc rsh deploy/postgresql
+
 # Ruta típica (puede variar según imagen):
 ls -l /var/lib/pgsql/data/log
 tail -f /var/lib/pgsql/data/log/postgresql-*.log
@@ -151,7 +157,6 @@ ALTER ROLE "userLI3" WITH LOGIN PASSWORD 'OCJqLmeKqTjnuiQ0';
 \du
 Verificar conexión:
 
-bash
 psql -h postgresql -U userLI3 sampledb
 Tip: Usá comillas dobles si el rol fue creado case-sensitive. En nuestra demo, userLI3 funciona sin comillas al conectarse, y "userLI3" se usa en ALTER para asegurar coincidencia exacta.
 
@@ -170,7 +175,7 @@ INSERT INTO clientes (nombre, email) VALUES
 ('Carlos Gómez', 'carlos.gomez@example.com'),
 ('Lucía Fernández', 'lucia.fernandez@example.com');
 
-Verificar
+# Verificar
 
 SELECT * FROM clientes;
 \dt
@@ -181,13 +186,14 @@ Problema: Falla de autenticación por desincronización entre Secret y rol.
 
 Diagnóstico: Logs internos de PostgreSQL muestran Password does not match y regla pg_hba.conf md5.
 
-Solución: ALTER ROLE para alinear la contraseña con el Secret.
+# Solución: ALTER ROLE para alinear la contraseña con el Secret.
+ALTER ROLE "userLI3" WITH LOGIN PASSWORD 'estoestemporal';
 
 Aprendizaje: OpenShift gestiona credenciales; PostgreSQL las valida. Los Pods efímeros terminan en Succeeded; para debugging, recrear cliente o usar oc rsh al Pod en ejecución.
 
 Valor TAM: Convertir un error en una oportunidad educativa, guiar al cliente con pasos claros y buenas prácticas.
 
-Limpieza opcional
+# Limpieza opcional
 
 oc delete deployment postgresql
 oc delete service postgresql
