@@ -1,2 +1,2 @@
 # openshift-demo
-“Proyecto simple para practicar OpenShift y PostgreSQL”
+“Proyecto simple OpenShift y PostgreSQL”
